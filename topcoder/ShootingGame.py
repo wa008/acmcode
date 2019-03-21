@@ -7,7 +7,3 @@ class ShootingGame(object):
         if p == 1000000 or ans > 1.0:
             ans = -1.0
         return ans
-
-sh = ShootingGame()
-print(sh.findProbability(400000))
-print(sh.findProbability(999997))
