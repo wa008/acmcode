@@ -1,0 +1,11 @@
+getfail(char *p,int *nex)//kmp找nex节点
+{
+    int k=strlen(p);
+    nex[0]=0;
+    nex[1]=0;
+    for(int i=1;i<k;i++){
+        int j=nex[i];
+        while(j&&p[j]!=p[i])j=nex[j];
+        nex[i+1]=p[i]==p[j]?j+1:0;
+    }
+}//kmp

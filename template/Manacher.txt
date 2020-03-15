@@ -1,0 +1,26 @@
+Manacher
+char s[maxn],t[maxn],ex[maxn];
+int len[maxn];
+void init(){
+    ex[0]='@';
+    for(int i=1;i<n*2;i+=2){
+        ex[i]='#';
+        ex[i+1]=s[i/2+1];
+    }
+    ex[2*n+1]='#';
+    ex[2*n+2]='$';
+}
+void manacher(){
+    len[1]=0;
+    int mx,op;
+    op=1;mx=1;
+    for(int i=2;i<=n*2;i++){
+        if(i<mx)len[i]=min(mx-i,len[op*2-i]);
+        else len[i]=0;
+        while(ex[i+len[i]+1]==ex[i-len[i]-1])len[i]++;
+        if(len[i]+i>mx){
+            op=i;
+            mx=i+len[i];
+        }
+    }
+}

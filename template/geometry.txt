@@ -1,0 +1,255 @@
+//几何基础
+struct coor
+{
+    double a,b;
+    coor(double a=0,double b=0):a(a),b(b) {}
+};
+void prin(coor c)
+{
+    printf("%.6lf\t%.6lf\n",c.a,c.b);
+}
+typedef coor point;//边
+coor operator + (coor A,coor B){return coor(A.a+B.a,A.b+B.b);}
+
+coor operator - (coor A,coor B){return coor(A.a-B.a,A.b-B.b);}
+
+coor operator * (coor A,double d){return coor(A.a*d,A.b*d);}
+
+coor operator / (coor A,double d){return coor(A.a/d,A.b/d);}
+
+bool operator == (const coor& A,const coor& B){return fabs(A.a-B.a)<=eps&&fabs(A.b-B.b)<=eps;}
+
+bool operator < (const coor& A,const coor& B){return A.a<B.a||(A.a==B.a&&A.b<B.b);}
+int dcmp(double d)
+{
+    if(fabs(d)<eps)return 0;
+    else return d<0?-1:1;
+}
+double Dot(coor A,coor B){return A.a*B.a+A.b*B.b;}//cos
+
+double Cross(coor A,coor B){return A.a*B.b-A.b*B.a;}//面积2倍,a在b的顺时针方向,面积为正
+
+double Area2(coor A,coor B,coor C){return fabs(Cross(A-B,C-B));}
+
+double Length(coor A){return sqrt(Dot(A,A));}
+
+double Length(coor A,coor B){return Length(A-B);}
+
+coor normal(coor A)
+{
+    double L=Length(A);
+    return coor(A.a/L,A.b/L);
+}
+
+double Angle(coor A,coor B){return acos(Dot(A,B)/Length(A)/Length(B));}
+
+double Angle(coor A){return atan2(A.b,A.a);}//A与x轴横坐标的夹角
+
+point Rotate(coor A,double rad)//逆时针旋转
+{
+    return coor(A.a*cos(rad)-A.b*sin(rad),A.a*sin(rad)+A.b*cos(rad));
+}
+coor jiaodian(coor p,coor v,coor q,coor w)//过p的线段v，过q的线段w
+{
+    coor u=p-q;
+    double t=Cross(w,u)/Cross(v,w);
+    return p+v*t;
+}
+coor chuizhi(coor A)
+{
+    coor B;
+    B.a=-A.b;B.b=A.a;
+    return B;
+}
+double distanceto1(coor p,coor x,coor y)//p到线段xy的最小距离
+{
+    if(x==y)return Length(p-x);
+    coor c1=y-x,c2=p-x,c3=p-y;
+    if(dcmp(Dot(c1,c2))<0)return Length(c2);
+    else if(dcmp(Dot(c1,c3))>0)return Length(c3);
+    else return fabs(Cross(c1,c2)/Length(c1));
+}
+double distanceto2(coor p,coor x,coor y)//p到直线xy的最小距离
+{
+    return Area2(p,x,y)/Length(x-y);
+}
+coor distanceto_touying(coor p,coor x,coor y)//求p在直线xy上的投影
+{
+    coor c=y-x;
+    //prin(c);
+    return x+c*(Dot(c,p-x)/Dot(c,c));
+}
+bool xiangjiao1(coor a1,coor a2,coor b1,coor b2)//判断线段a1 a2于线段b1 b2是否相交 且交点不在两线段的端点
+{
+    double c1=Cross(a2-a1,b1-a1),c2=Cross(a2-a1,b2-a1),
+           c3=Cross(b2-b1,a1-b1),c4=Cross(b2-b1,a2-b1);
+    return dcmp(c1)*dcmp(c2)<0&&dcmp(c3)*dcmp(c4)<0;
+}
+bool xiangjiao2(coor p,coor x,coor y)//判断p是否在线段xy上且不在端点
+{
+    return dcmp(Cross(x-p,y-p))==0&&dcmp(Dot(x-p,y-p))<0;
+}
+struct line
+{
+    coor p,q;
+    line(coor c1,coor c2):p(c1),q(c2){}
+    coor v=normal(q-p);
+    coor point(double t){
+        return p+v*t;
+    }
+};
+struct circle{//圆
+    point c;
+    double r;
+    circle(point c,double r):c(c),r(r){}
+    point rad(double a){
+        return point(c.a+cos(a)*r,c.b+sin(a)*r);
+    }
+};
+
+int getlinecircle(line L,circle cir,double& t1,double& t2,vector<point>&sol)//过c1的直线c2
+{
+    double a=L.v.a,b=L.p.a-cir.c.a,c=L.v.b,d=L.p.b-cir.c.b;
+    double e=a*a+c*c,f=2*(a*b+c*d),g=b*b+d*d-cir.r*cir.r;
+    double delta=f*f-4*e*g;//判别式
+    if(dcmp(delta)<0)return 0;
+    else if(dcmp(delta)==0){
+        t1=t2=-f/(2*e);
+        sol.push_back(L.point(t1));
+        return 1;
+    }
+    //相交
+    t1=(-f-sqrt(delta))/(2*e);sol.push_back(L.point(t1));
+    t2=(-f+sqrt(delta))/(2*e);sol.push_back(L.point(t2));
+    return 2;
+}
+
+int getcirclecircle(circle cir1,circle cir2,vector<coor>& sol)
+{
+    double d=Length(cir1.c-cir2.c);
+    if(dcmp(d)==0){
+        if(dcmp(cir1.r-cir2.r)==0)return -1;//两圆重合
+        return 0;
+    }
+    if(dcmp(cir1.r+cir2.r-d)<0||dcmp(fabs(cir1.r-cir2.r)-d)>0)return 0;
+    double a=Angle(cir2.c-cir1.c);
+    double da=acos((cir1.r*cir1.r+d*d-cir2.r*cir2.r)/(2*cir1.r*d));
+    sol.push_back(cir1.rad(a-da));
+    if(dcmp(a-da)==0)return 1;
+    sol.push_back(cir1.rad(a+da));
+    return 2;
+}
+
+int gettangments(coor c,circle cir,vector<coor>& sol)
+{
+    coor u=cir.c-c;
+    double dist=Length(u);
+    if(dist<cir.r)return 0;
+    else if(dcmp(dist-cir.r)==0){
+        sol.push_back(Rotate(u,IP/2));
+        return 1;
+    }
+    double ang=asin(cir.r/dist);
+    sol.push_back(Rotate(u,-ang));
+    sol.push_back(Rotate(u,ang));
+    return 2;
+}
+
+int gettangments(circle cir1,circle cir2,vector<coor>& sol1,vector<coor>& sol2)//返回两切点
+{
+    int cnt=0;
+    if(cir1.r<cir2.r){swap(cir1,cir2);swap(sol1,sol2);}
+    int d2=(cir1.c.a-cir2.c.a)*(cir1.c.a-cir2.c.a)+(cir1.c.b-cir2.c.b)*(cir1.c.b-cir2.c.b);
+    int rdiff=cir1.r-cir2.r,rsum=cir1.r+cir2.r;
+    if(d2<rdiff*rdiff)return 0;
+
+    double base=atan2(cir2.c.b-cir1.c.b,cir2.c.a-cir1.c.a);
+    if(d2==0&&cir1.r==cir2.r)return -1;//无数多
+    if(d2==rdiff*rdiff){
+        sol1.push_back(cir1.rad(base));
+        sol2.push_back(cir2.rad(base));
+        return 1;
+    }
+    double ang=acos((cir1.r-cir2.r)/sqrt(d2));
+    sol1.push_back(cir1.rad(base+ang));sol2.push_back(cir2.rad(base+ang));
+    sol1.push_back(cir1.rad(base-ang));sol2.push_back(cir2.rad(base-ang));
+    if(d2==rsum*rsum){
+        sol1.push_back(cir1.rad(base));
+        sol2.push_back(cir2.rad(base+IP));
+    }
+    else if(d2>rsum*rsum){
+        double ang=acos((cir1.r+cir2.r)/sqrt(d2));
+        sol1.push_back(cir1.rad(base+ang));sol2.push_back(cir2.rad(IP+base+ang));
+        sol1.push_back(cir1.rad(base-ang));sol2.push_back(cir2.rad(IP+base-ang));
+    }
+    return sol1.size();
+}
+
+point p[maxn],ch[maxn]; //凸包
+bool coor_cmp(coor c1,coor c2)
+{
+    return c1.a<c2.a||(c1.a==c2.a&&c1.b<c2.b);
+}
+int convex(point* p,int n,point* ch) 
+{
+    sort(p,p+n,coor_cmp);
+    int con_len=0;
+    for(int i=0;i<n;i++){
+        if(i>1&&p[i]==p[i-1])continue;
+        while(con_len>1&&Cross(ch[con_len-1]-ch[con_len-2],p[i]-ch[con_len-2])<=0)con_len--;
+        ch[con_len++]=p[i];
+    }
+    int k=con_len;
+    for(int i=n-2;i>=0;i--){
+        if(i<n-1&&p[i]==p[i+1])continue;
+        while(con_len>k&&Cross(ch[con_len-1]-ch[con_len-2],p[i]-ch[con_len-2])<=0)con_len--;
+        ch[con_len++]=p[i];
+    }
+    if(n>1)con_len--;
+    return con_len;
+}
+double man_area(point* ch,int n)//多边形面积
+{
+    double d=0;
+    for(int i=1;i<n-1;i++){
+        d+=fabs(Area2(ch[0],ch[i],ch[i+1]));
+    }
+    return d/2;
+}
+//半平面相交
+coor jiaodian(line a,line b)
+{
+    coor u=a.p-b.p;
+    double t=Cross(b.v,u)/Cross(a.v,b.v);
+    return a.p+a.v*t;
+}
+bool Onleft(line l,coor p){
+    return Cross(l.v,p-l.p)>0;
+}
+int halfplaneintersection(line *l,int n,coor* poly){
+    sort(l,l+n);
+    int first,last;//双端队列第一个元素和最后一个元素的下标
+    coor *p=new coor[n];//p[i]为q[i]和q[i+1]的交点
+    line *q=new line[n];//双端队列
+    q[first=last=0]=l[0];
+    for(int i=1;i<n;i++){
+        while(first<last&&!Onleft(l[i],p[last-1]))last--;
+        while(first<last&&!Onleft(l[i],p[first]))first++;
+        q[++last]=l[i];
+        if(fabs(Cross(q[last].v,q[last-1].v))<eps){
+            last--;
+            if(Onleft(q[last],l[i].p))q[last]=l[i];
+        }
+        if(first<last)p[last-1]=jiaodian(q[last-1],q[last]);
+    }
+    while(first<last&&!Onleft(q[first],p[last-1]))last--;//删除无用面
+    if(last-first<=1){
+        return 0;
+    }
+    p[last]=jiaodian(q[first],q[last]);
+    int m=0;
+    for(int i=first;i<=last;i++){
+        poly[m++]=p[i];
+    }
+    return m;
+}//半平面相交

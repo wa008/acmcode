@@ -1,0 +1,61 @@
+线段树+扫面线求矩形面积并
+int y[maxn];
+struct Node{
+    int x,y1,y2,flag;
+}mo[maxn];
+struct node{
+    int l,r,ml,mr,len,s;
+}no[maxn];
+
+bool cmp(Node n1,Node n2)
+{
+    return n1.x<n2.x;
+}
+
+void build(int o,int a,int b)
+{
+    no[o].l=a;
+    no[o].r=b;
+    no[o].ml=y[a];
+    no[o].mr=y[b];
+    no[o].len=0;
+    no[o].s=0;
+    if(a==b-1){
+        return;
+    }
+    int mid=(a+b)/2;
+    build(o*2,a,mid);
+    build(o*2+1,mid,b);
+}
+
+void callen(int o){
+    if(no[o].s>0){
+        no[o].len=no[o].mr-no[o].ml;
+    }
+    else if(no[o].mr-no[o].ml==1){
+        no[o].len=0;
+    }
+    else{
+        no[o].len=no[o*2].len+no[o*2+1].len;
+    }
+}
+
+
+void update(int a,Node p){
+    if(no[a].ml==p.y1&&no[a].mr==p.y2){
+        no[a].s+=p.flag;
+        callen(a);
+        return;
+    }
+    Node temp=p;
+    if(p.y2<=no[a*2].mr)update(a*2,p);
+    else if(p.y1>=no[a*2+1].ml)update(a*2+1,p);
+    else{
+        temp.y2=no[a*2].mr;
+        update(a*2,temp);
+        temp=p;
+        temp.y1=no[a*2+1].ml;
+        update(a*2+1,temp);
+    }
+    callen(a);
+}

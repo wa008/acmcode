@@ -1,0 +1,31 @@
+扩展kmp
+int nex[maxn],exlen[maxn];
+void ex_kmp(){
+    nex[1]=m;
+    int i=1,mx,op=2;
+    while(t[i]==t[i+1])i++;
+    nex[2]=i-1;
+    for(i=3;i<=m;i++){
+        if(i<op+nex[op]-1)nex[i]=min(nex[i-op+1],op+nex[op]-i);
+        else nex[i]=0;
+        while(t[nex[i]+i]==t[nex[i]+1])nex[i]++;
+        if(i+nex[i]>op+nex[op]){
+            op=i;
+        }
+    }
+    s[n+1]='$';
+    i=1;
+    while(s[i]==t[i] && s[i]!='\0')i++;
+    exlen[1]=i-1;
+    op=1;
+    for(int i=2;i<=n;i++){
+        if(i<op+exlen[op]-1){
+            exlen[i]=min(nex[i-op+1],op+exlen[op]-i);
+        }
+        else exlen[i]=0;
+        while(s[i+exlen[i]]==t[exlen[i]+1])exlen[i]++;
+        if(op+exlen[op]<i+exlen[i]){
+            op=i;
+        }
+    }
+}

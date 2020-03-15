@@ -1,0 +1,430 @@
+Double 精确到小数点后15位
+Long double 精确到小数点后16位
+#include<iomanip>
+cout<<setprecision(30)<<d<<endl;
+
+//欧拉定理：点+面-边=2
+ 
+ASCII码
+‘0’—48
+‘a’----97 122
+‘A’----65 90
+
+
+//头文件
+#include<stack>
+#include<queue>
+#include<cstring>
+#include<string>
+#include<cstdio>
+#include<set>
+#include<map>
+#include<stdio.h>
+#include<stdlib.h>
+#include<cmath>
+#include<algorithm>
+#include<vector>
+#include<iostream>
+#define INF 0x7fffffff//1<<31-1  2e9+
+#define IP 3.141592654
+#define LINF 9223372036854775807//1<<63-1
+#define rep(i,a,b) for(long long i=a;i<b;i++)
+#define per(i,a,b) for(long long i=b-1;i>=a;i--)
+const double DD=0.57721566490153286060651209;
+using namespace std;
+typedef long long LL;
+const int maxn=100+5;
+const int maxm=1e4+5;
+const int mod=10001;
+
+
+
+//主席树
+int tree[30][maxn],sor[maxn],toleft[30][maxn];
+void build(int a,int b,int o)
+{
+    if(a==b)return ;
+    int mid=(a+b)/2;
+    int same=mid-a+1;
+    for(int i=a;i<=b;i++){
+        if(tree[o][i]<sor[mid])same--;
+    }
+    int lpos=a,rpos=mid+1;
+    for(int i=a;i<=b;i++){
+        if(tree[o][i]<sor[mid])tree[o+1][lpos++]=tree[o][i];
+        else if(same>0&&tree[o][i]==sor[mid]){
+            tree[o+1][lpos++]=tree[o][i];
+            same--;
+        }
+        else tree[o+1][rpos++]=tree[o][i];
+        toleft[o][i]=toleft[o][a-1]+lpos-a;
+    }
+    build(a,mid,o+1);
+    build(mid+1,b,o+1);
+}
+int que(int a,int b,int x,int y,int o,int k)//[a,b]区间内,[x,y]内第k大的值
+{
+    if(x==y)return tree[o][x];
+    int mid=(a+b)/2;
+    int cnt=toleft[o][y]-toleft[o][x-1];
+    if(k<=cnt){
+        int newx=a+toleft[o][x-1]-toleft[o][a-1];
+        int newy=newx+cnt-1;
+        return que(a,mid,newx,newy,o+1,k);
+    }
+    else{
+        int newy=y+toleft[o][b]-toleft[o][y];
+        int newx=newy-(y-x-cnt);
+        return que(mid+1,b,newx,newy,o+1,k-cnt);
+    }
+}//主席树
+
+
+
+
+
+
+//Dinic
+struct Edge{
+    int from,to,cap,flow;
+    Edge(){
+        
+    }
+    Edge(int a,int b,int c,int d){
+        from=a;
+        to=b;
+        cap=c;
+        flow=d;
+    }
+}edges[maxm*2];
+int n,m,s,t,sz;
+vector<int> ve[maxn];
+int dis[maxn],cur[maxn];
+bool vis[maxn];
+int l,r;
+void addEdge(int a,int b,int c)
+{
+    edges[sz++]=Edge(a,b,c,0);
+    edges[sz++]=Edge(b,a,0,0);
+    ve[a].push_back(sz-2);
+    ve[b].push_back(sz-1);
+}
+bool BFS(){
+    memset(vis,0,sizeof(vis));
+    queue<int> qu;
+    qu.push(s);
+    dis[s]=0;
+    vis[s]=1;
+    while(qu.size()){
+        int u=qu.front();qu.pop();
+        for(int i=0;i<ve[u].size();i++){
+            Edge& e=edges[ve[u][i]];
+            if(!vis[e.to] && e.flow<e.cap){
+                vis[e.to]=1;
+                qu.push(e.to);
+                dis[e.to]=dis[u]+1;
+            }
+        }
+    }
+    return vis[t];
+}
+int DFS(int x,int a)
+{
+    if(x==t || a==0)return a;
+    int flow=0,f;
+    for(int& i=cur[x];i<ve[x].size();i++){
+        Edge e=edges[ve[x][i]];
+        if(dis[x]+1==dis[e.to] && (f=DFS(e.to,min(a,e.cap-e.flow)))>0){
+            flow+=f;
+            a-=f;
+            edges[ve[x][i]].flow+=f;
+            edges[ve[x][i]^1].flow-=f;
+            if(a==0)break;
+        }
+    }
+    return flow;
+}
+int dinic()
+{
+    int flow=0;
+    while(BFS()){
+        memset(cur,0,sizeof(cur));
+        flow += DFS(s,600000);
+    }
+    return flow;
+}
+
+
+双连通分量
+struct node{
+    int b,nex;
+}no[maxn*2];
+int head[maxn],sz;
+void add(int a,int b){
+    no[sz].b=b;
+    no[sz].nex=head[a];
+    head[a]=sz++;
+}
+int pre[maxn],iscnt[maxn],bccno[maxn],dfs_clock,bcc_cnt;
+vector<int> bcc[maxn];
+stack<pair<int,int> > st;
+void init(){
+    memset(head,-1,sizeof(head));
+    sz=0;
+    for(int i=0;i<=n;i++){
+        pre[i]=iscnt[i]=bccno[i]=0;
+    }
+    dfs_clock=bcc_cnt=0;
+}
+ll a1,a2;
+int dfs(int u,int fa){
+    int lowu=pre[u]=++dfs_clock;
+    int child=0;
+    for(int i=head[u];i!=-1;i=no[i].nex){
+        int v=no[i].b;
+        if(!pre[v]){
+            child++;
+            st.push(make_pair(u,v));
+            int lowv=dfs(v,u);
+            lowu=min(lowu,lowv);
+            if(lowv>=pre[u]){
+                iscnt[u]=1;
+                bcc_cnt++;bcc[bcc_cnt].clear();
+                while(1){
+                    pair<int,int> mid=st.top();st.pop();
+                    if(bccno[mid.first]!=bcc_cnt){
+                        bcc[bcc_cnt].push_back(mid.first);
+                        bccno[mid.first]=bcc_cnt;
+                    }
+                    if(bccno[mid.second]!=bcc_cnt){
+                        bcc[bcc_cnt].push_back(mid.second);
+                        bccno[mid.second]=bcc_cnt;
+                    }
+                    if(mid.first==u && mid.second==v)break;
+                }
+            }
+        }
+        else if(pre[v]<pre[u] && v!=fa){
+            st.push(make_pair(u,v));
+            lowu=min(lowu,pre[v]);
+        }
+    }
+    if(fa<0 && child==1)iscnt[u]=0;
+    return lowu;
+}
+
+
+
+
+高斯消元
+double a[405][405],x[405];
+int var,equ;
+int gauss(){
+    int i,j,k,col,mx;
+    for(int k=0,col=0;k<equ&&col<var;col++,k++){
+        mx=k;
+        for(i=k+1;i<equ;i++){
+            if(fabs(a[i][col])>fabs(a[mx][col]))mx=i;
+        }
+        if(fabs(a[mx][col])<eps){
+            k--;
+            continue;
+        }
+        if(k!=mx){
+            for(j=col;j<=var;j++)swap(a[k][j],a[mx][j]);
+        }
+        for(i=k+1;i<equ;i++){
+            if(fabs(a[i][col])>eps){
+                double tmp=a[i][col]/a[k][col];
+                for(j=col;j<=var;j++){
+                    a[i][j] -= tmp*a[k][j];
+                }
+            }
+        }
+    }
+    for(i=equ-1;i>=0;i--){
+        for(j=var-1;j>i;j--){
+            a[i][var] -= a[i][j]*x[j];
+        }
+        x[i]=a[i][var]/a[i][i];
+    }
+    return 1;
+}
+
+莫比乌斯反演
+int prime[maxn],vis[maxn],tot,mu[maxn];
+void init()
+{
+    mu[1]=1;
+    tot=0;
+    for(ll i=2;i<maxn;i++){
+        if(!vis[i]){
+            prime[tot++]=i;
+            mu[i]=-1;
+        }
+        for(int j=0;j<tot&&prime[j]*i<maxn;j++){
+            vis[i*prime[j]]=1;
+            if(i%prime[j])mu[i*prime[j]]=-mu[i];
+            else{
+                mu[i*prime[j]]=0;
+                break;
+            }
+        }
+    }
+}
+ 
+自定义优先队列
+struct node{
+    int b,c,nex;
+    node(int x,int y,int z){
+        b=x;c=y;nex=z;
+    }
+};
+
+struct cmp{
+    bool operator () (const node &n1,const node &n2){
+        return n1.b<n2.b;
+    }
+};
+priority_queue<node,vector<node>,cmp> q1;
+
+
+动态lca，rmq+树状数组+dfs序
+struct node{
+    int b,nex,id;
+}no[maxn<<1];
+int head[maxn],sz,ff[maxn];
+int dfs_seq[maxn<<1],pos[maxn],w[maxn],dep[maxn<<1],dfn,nexpos[maxn],f[maxn<<1][20];
+int L[maxn],R[maxn],dfs_clock;
+ll vv[maxn<<2];
+void init(){
+    for(int i=0;i<=n;i++){
+        head[i]=-1;
+        ff[i]=i;
+        vv[i]=0;
+        pos[i]=-1;
+    }
+    sz=0;
+    dfn=0;
+    dfs_clock=0;
+}
+void add(int a,int b,int id){
+    no[sz].b=b;
+    no[sz].id=id;
+    no[sz].nex=head[a];
+    head[a]=sz++;
+}
+int fin(int x){
+    return x==ff[x]?x:ff[x]=fin(ff[x]);
+}
+void update(int x,int v){
+    while(x<=n){
+        vv[x]+=v;
+        x += x&(-x);
+    }
+}
+ll que(int x){
+    ll ans=0;
+    while(x>0){
+        ans += vv[x];
+        x -= x&(-x);
+    }
+    return ans;
+}
+void dfs(int u,int deep){
+    //cout<<"u = "<<u<<endl;
+    dfs_seq[dfn]=u;dep[dfn]=deep;pos[u]=dfn++;
+    L[u]=++dfs_clock;
+    for(int i=head[u];i!=-1;i=no[i].nex){
+        int v=no[i].b;
+        //cout<<"v = "<<v<<endl;
+        if(pos[v]==-1){
+            nexpos[no[i].id]=v;
+            dfs(v,deep+1);
+            dfs_seq[dfn]=u;dep[dfn++]=deep;
+        }
+    }
+    R[u]=dfs_clock;
+}
+void init_rmq(int n){
+    for(int i=0;i<=n;i++)f[i][0]=i;
+    for(int i=1;i<20;i++){
+        for(int j=0;j+(1<<i)<=n;j++){
+            if(dep[f[j][i-1]]<dep[f[j+(1<<(i-1))][i-1]])f[j][i]=f[j][i-1];
+            else f[j][i]=f[j+(1<<(i-1))][i-1];
+        }
+    }
+}
+int rmq(int a,int b){
+    int k=0;
+    while((1<<(k+1))<=b-a+1)k++;
+    if(f[a][k]<f[b-(1<<k)+1][k])return f[a][k];
+    else return f[b-(1<<k)+1][k];
+}
+int lca(int u,int v){
+    if(pos[u]>pos[v])swap(u,v);
+    return dfs_seq[rmq(pos[u],pos[v])];
+}
+ll dis(int u,int v){
+    return que(L[u])+que(L[v])-que(L[lca(u,v)])*2;
+}
+//ll ans=dis(a,b);
+//update(L[nexpos[i]],w[i]);
+//update(R[nexpos[i]]+1,-w[i]);
+
+int main()
+{
+    //fopen
+    //freopen("input.in","r",stdin);
+    int t;scanf("%d",&t);
+    int fir=0;
+    while(t--){
+        scanf("%d%d",&n,&m);
+        init();
+        int x,y,z,id;
+        for(int i=1;i<=n;i++){
+            int a,b,c;scanf("%d%d%d",&a,&b,&c);
+            x=fin(a);y=fin(b);
+            if(x==y){
+                x=a;y=b;z=c;id=i;
+            }
+            else{
+                ff[x]=y;
+                add(a,b,i);
+                add(b,a,i);
+                w[i]=c;
+            }
+        }
+        dfs(1,1);
+        init_rmq(dfn);
+        for(int i=1;i<=n;i++){
+            if(i!=id){
+                update(L[nexpos[i]],w[i]);
+                update(R[nexpos[i]]+1,-w[i]);
+            }
+        }
+        //cout<<"over\n";
+        while(m--){
+            int op,a,b;
+            scanf("%d%d%d",&op,&a,&b);
+            if(op==0){
+                if(a==id){
+                    z=b;
+                    w[id]=b;
+                }
+                else{
+                    update(L[nexpos[a]],b-w[a]);
+                    update(R[nexpos[a]]+1,-b+w[a]);
+                    w[a]=b;
+                }
+            }
+            else{
+                ll ans=dis(a,b);
+                ans = min(ans , dis(a,x)+dis(b,y)+z);
+                ans = min(ans , dis(a,y)+dis(b,x)+z);
+                printf("%lld\n",ans);
+            }
+        }
+    }
+    return 0;
+}

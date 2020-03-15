@@ -1,0 +1,44 @@
+const int maxnode=80; //ac自动机
+int ch[maxm][maxnode],val[maxm];
+int sz;
+int index(char c){return c-'0';}
+void ac_init()
+{
+    memset(ch[0],0,sizeof(ch[0])); sz=1;
+}
+void ac_insert(char *c,int va)
+{
+    int u=0;int len=strlen(c);
+    for(int i=0;i<len;i++){
+        int v=index(c[i]);
+        if(!ch[u][v]){
+            memset(ch[sz],0,sizeof(ch[sz]));
+            val[sz]=0;
+            ch[u][v]=sz++;
+        }
+        u=ch[u][v];
+    }
+    val[u]=va;
+}
+void ac_getfail(int *f){
+    queue<int>qn;
+    for(int i=0;i<maxnode;i++){
+        if(ch[0][i]){
+            qn.push(ch[0][i]);
+        }
+    }
+    while(qn.size()){
+        int u=qn.front();qn.pop();
+        for(int i=0;i<maxnode;i++){
+            if(!ch[u][i]){
+                ch[u][i]=ch[f[u]][i];
+                continue;
+            }
+            int t=f[u];
+            while(t>0&&ch[t][i]==0)t=f[t];
+            f[ch[u][i]]=ch[t][i];
+            if(val[f[ch[u][i]]])val[ch[u][i]]=1;
+            qn.push(ch[u][i]);
+        }
+    }
+}
