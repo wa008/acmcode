@@ -68,3 +68,74 @@ struct Dinic //maxn 点的数量 maxm 边的数量
         return flow;
     }
 }dinic;
+
+
+//Dinic
+struct Edge{
+    int from,to,cap,flow;
+    Edge(){
+        
+    }
+    Edge(int a,int b,int c,int d){
+        from=a;
+        to=b;
+        cap=c;
+        flow=d;
+    }
+}edges[maxm*2];
+int n,m,s,t,sz;
+vector<int> ve[maxn];
+int dis[maxn],cur[maxn];
+bool vis[maxn];
+int l,r;
+void addEdge(int a,int b,int c)
+{
+    edges[sz++]=Edge(a,b,c,0);
+    edges[sz++]=Edge(b,a,0,0);
+    ve[a].push_back(sz-2);
+    ve[b].push_back(sz-1);
+}
+bool BFS(){
+    memset(vis,0,sizeof(vis));
+    queue<int> qu;
+    qu.push(s);
+    dis[s]=0;
+    vis[s]=1;
+    while(qu.size()){
+        int u=qu.front();qu.pop();
+        for(int i=0;i<ve[u].size();i++){
+            Edge& e=edges[ve[u][i]];
+            if(!vis[e.to] && e.flow<e.cap){
+                vis[e.to]=1;
+                qu.push(e.to);
+                dis[e.to]=dis[u]+1;
+            }
+        }
+    }
+    return vis[t];
+}
+int DFS(int x,int a)
+{
+    if(x==t || a==0)return a;
+    int flow=0,f;
+    for(int& i=cur[x];i<ve[x].size();i++){
+        Edge e=edges[ve[x][i]];
+        if(dis[x]+1==dis[e.to] && (f=DFS(e.to,min(a,e.cap-e.flow)))>0){
+            flow+=f;
+            a-=f;
+            edges[ve[x][i]].flow+=f;
+            edges[ve[x][i]^1].flow-=f;
+            if(a==0)break;
+        }
+    }
+    return flow;
+}
+int dinic()
+{
+    int flow=0;
+    while(BFS()){
+        memset(cur,0,sizeof(cur));
+        flow += DFS(s,600000);
+    }
+    return flow;
+}

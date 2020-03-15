@@ -1,0 +1,140 @@
+
+动态lca，rmq+树状数组+dfs序
+struct node{
+    int b,nex,id;
+}no[maxn<<1];
+int head[maxn],sz,ff[maxn];
+int dfs_seq[maxn<<1],pos[maxn],w[maxn],dep[maxn<<1],dfn,nexpos[maxn],f[maxn<<1][20];
+int L[maxn],R[maxn],dfs_clock;
+ll vv[maxn<<2];
+void init(){
+    for(int i=0;i<=n;i++){
+        head[i]=-1;
+        ff[i]=i;
+        vv[i]=0;
+        pos[i]=-1;
+    }
+    sz=0;
+    dfn=0;
+    dfs_clock=0;
+}
+void add(int a,int b,int id){
+    no[sz].b=b;
+    no[sz].id=id;
+    no[sz].nex=head[a];
+    head[a]=sz++;
+}
+int fin(int x){
+    return x==ff[x]?x:ff[x]=fin(ff[x]);
+}
+void update(int x,int v){
+    while(x<=n){
+        vv[x]+=v;
+        x += x&(-x);
+    }
+}
+ll que(int x){
+    ll ans=0;
+    while(x>0){
+        ans += vv[x];
+        x -= x&(-x);
+    }
+    return ans;
+}
+void dfs(int u,int deep){
+    //cout<<"u = "<<u<<endl;
+    dfs_seq[dfn]=u;dep[dfn]=deep;pos[u]=dfn++;
+    L[u]=++dfs_clock;
+    for(int i=head[u];i!=-1;i=no[i].nex){
+        int v=no[i].b;
+        //cout<<"v = "<<v<<endl;
+        if(pos[v]==-1){
+            nexpos[no[i].id]=v;
+            dfs(v,deep+1);
+            dfs_seq[dfn]=u;dep[dfn++]=deep;
+        }
+    }
+    R[u]=dfs_clock;
+}
+void init_rmq(int n){
+    for(int i=0;i<=n;i++)f[i][0]=i;
+    for(int i=1;i<20;i++){
+        for(int j=0;j+(1<<i)<=n;j++){
+            if(dep[f[j][i-1]]<dep[f[j+(1<<(i-1))][i-1]])f[j][i]=f[j][i-1];
+            else f[j][i]=f[j+(1<<(i-1))][i-1];
+        }
+    }
+}
+int rmq(int a,int b){
+    int k=0;
+    while((1<<(k+1))<=b-a+1)k++;
+    if(f[a][k]<f[b-(1<<k)+1][k])return f[a][k];
+    else return f[b-(1<<k)+1][k];
+}
+int lca(int u,int v){
+    if(pos[u]>pos[v])swap(u,v);
+    return dfs_seq[rmq(pos[u],pos[v])];
+}
+ll dis(int u,int v){
+    return que(L[u])+que(L[v])-que(L[lca(u,v)])*2;
+}
+//ll ans=dis(a,b);
+//update(L[nexpos[i]],w[i]);
+//update(R[nexpos[i]]+1,-w[i]);
+
+int main()
+{
+    //fopen
+    //freopen("input.in","r",stdin);
+    int t;scanf("%d",&t);
+    int fir=0;
+    while(t--){
+        scanf("%d%d",&n,&m);
+        init();
+        int x,y,z,id;
+        for(int i=1;i<=n;i++){
+            int a,b,c;scanf("%d%d%d",&a,&b,&c);
+            x=fin(a);y=fin(b);
+            if(x==y){
+                x=a;y=b;z=c;id=i;
+            }
+            else{
+                ff[x]=y;
+                add(a,b,i);
+                add(b,a,i);
+                w[i]=c;
+            }
+        }
+        dfs(1,1);
+        init_rmq(dfn);
+        for(int i=1;i<=n;i++){
+            if(i!=id){
+                update(L[nexpos[i]],w[i]);
+                update(R[nexpos[i]]+1,-w[i]);
+            }
+        }
+        //cout<<"over\n";
+        while(m--){
+            int op,a,b;
+            scanf("%d%d%d",&op,&a,&b);
+            if(op==0){
+                if(a==id){
+                    z=b;
+                    w[id]=b;
+                }
+                else{
+                    update(L[nexpos[a]],b-w[a]);
+                    update(R[nexpos[a]]+1,-b+w[a]);
+                    w[a]=b;
+                }
+            }
+            else{
+                ll ans=dis(a,b);
+                ans = min(ans , dis(a,x)+dis(b,y)+z);
+                ans = min(ans , dis(a,y)+dis(b,x)+z);
+                printf("%lld\n",ans);
+            }
+        }
+    }
+    return 0;
+}

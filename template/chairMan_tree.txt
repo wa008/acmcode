@@ -1,0 +1,39 @@
+//主席树
+int tree[30][maxn],sor[maxn],toleft[30][maxn];
+void build(int a,int b,int o)
+{
+    if(a==b)return ;
+    int mid=(a+b)/2;
+    int same=mid-a+1;
+    for(int i=a;i<=b;i++){
+        if(tree[o][i]<sor[mid])same--;
+    }
+    int lpos=a,rpos=mid+1;
+    for(int i=a;i<=b;i++){
+        if(tree[o][i]<sor[mid])tree[o+1][lpos++]=tree[o][i];
+        else if(same>0&&tree[o][i]==sor[mid]){
+            tree[o+1][lpos++]=tree[o][i];
+            same--;
+        }
+        else tree[o+1][rpos++]=tree[o][i];
+        toleft[o][i]=toleft[o][a-1]+lpos-a;
+    }
+    build(a,mid,o+1);
+    build(mid+1,b,o+1);
+}
+int que(int a,int b,int x,int y,int o,int k)//[a,b]区间内,[x,y]内第k大的值
+{
+    if(x==y)return tree[o][x];
+    int mid=(a+b)/2;
+    int cnt=toleft[o][y]-toleft[o][x-1];
+    if(k<=cnt){
+        int newx=a+toleft[o][x-1]-toleft[o][a-1];
+        int newy=newx+cnt-1;
+        return que(a,mid,newx,newy,o+1,k);
+    }
+    else{
+        int newy=y+toleft[o][b]-toleft[o][y];
+        int newx=newy-(y-x-cnt);
+        return que(mid+1,b,newx,newy,o+1,k-cnt);
+    }
+}//主席树

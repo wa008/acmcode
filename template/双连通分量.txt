@@ -1,0 +1,57 @@
+双连通分量
+struct node{
+    int b,nex;
+}no[maxn*2];
+int head[maxn],sz;
+void add(int a,int b){
+    no[sz].b=b;
+    no[sz].nex=head[a];
+    head[a]=sz++;
+}
+int pre[maxn],iscnt[maxn],bccno[maxn],dfs_clock,bcc_cnt;
+vector<int> bcc[maxn];
+stack<pair<int,int> > st;
+void init(){
+    memset(head,-1,sizeof(head));
+    sz=0;
+    for(int i=0;i<=n;i++){
+        pre[i]=iscnt[i]=bccno[i]=0;
+    }
+    dfs_clock=bcc_cnt=0;
+}
+ll a1,a2;
+int dfs(int u,int fa){
+    int lowu=pre[u]=++dfs_clock;
+    int child=0;
+    for(int i=head[u];i!=-1;i=no[i].nex){
+        int v=no[i].b;
+        if(!pre[v]){
+            child++;
+            st.push(make_pair(u,v));
+            int lowv=dfs(v,u);
+            lowu=min(lowu,lowv);
+            if(lowv>=pre[u]){
+                iscnt[u]=1;
+                bcc_cnt++;bcc[bcc_cnt].clear();
+                while(1){
+                    pair<int,int> mid=st.top();st.pop();
+                    if(bccno[mid.first]!=bcc_cnt){
+                        bcc[bcc_cnt].push_back(mid.first);
+                        bccno[mid.first]=bcc_cnt;
+                    }
+                    if(bccno[mid.second]!=bcc_cnt){
+                        bcc[bcc_cnt].push_back(mid.second);
+                        bccno[mid.second]=bcc_cnt;
+                    }
+                    if(mid.first==u && mid.second==v)break;
+                }
+            }
+        }
+        else if(pre[v]<pre[u] && v!=fa){
+            st.push(make_pair(u,v));
+            lowu=min(lowu,pre[v]);
+        }
+    }
+    if(fa<0 && child==1)iscnt[u]=0;
+    return lowu;
+}

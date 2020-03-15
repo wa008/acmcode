@@ -1,0 +1,14 @@
+自定义优先队列
+struct node{
+    int b,c,nex;
+    node(int x,int y,int z){
+        b=x;c=y;nex=z;
+    }
+};
+
+struct cmp{
+    bool operator () (const node &n1,const node &n2){
+        return n1.b<n2.b;
+    }
+};
+priority_queue<node,vector<node>,cmp> q1;
