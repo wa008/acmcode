@@ -1,4 +1,4 @@
-Manacher
+//Manacher
 char s[maxn],t[maxn],ex[maxn];
 int len[maxn];
 void init(){
