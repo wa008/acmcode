@@ -24,3 +24,11 @@
 rick and morty
     1 8
 
+
+vultr
+    洛杉矶 pass
+    新加坡 pass
+    悉尼 220ms
+    伦敦 340ms
+    西雅图 pass
+    
