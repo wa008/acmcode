@@ -33,3 +33,4 @@ vultr
     使用v2ray-core打开，网速特别卡
     暂时先用 布丁加速器
     
+https://sub88.xyz/link/cB9e8skc47pqHfJs?mu=4
