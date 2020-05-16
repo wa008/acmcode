@@ -35,6 +35,16 @@ rick and morty
 
 vultr
     悉尼 220ms
+<<<<<<< HEAD
     伦敦 340ms 
 暂时先用 布丁加速器
 
+=======
+    伦敦 340ms
+    西雅图 pass
+    
+    使用v2ray-core打开，网速特别卡
+    暂时先用 布丁加速器
+    
+https://sub88.xyz/link/cB9e8skc47pqHfJs?mu=4
+>>>>>>> c131378904417b8011cc3ec8e7260ccfe34e629d
