@@ -1,5 +1,5 @@
 老友记
-    2 16
+    3 7 14
 
 rick and morty
     1 8
@@ -36,7 +36,3 @@ rick and morty
     西雅图 pass
     使用v2ray-core打开，网速特别卡
     暂时先用 布丁加速器
-
-暂时先用 布丁加速器
-
-
