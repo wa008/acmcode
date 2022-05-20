@@ -36,3 +36,5 @@ rick and morty
     西雅图 pass
     使用v2ray-core打开，网速特别卡
     暂时先用 布丁加速器
+
+公式测试：$\sqrt{3x-1}+(1+x)^2$
